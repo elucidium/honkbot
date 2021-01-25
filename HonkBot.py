@@ -36,11 +36,15 @@ async def on_ready():
     print('Logged in as ' + str(client.user.name) + '(' + str(client.user.id) + ')')
     await client.change_presence(activity=discord.Game("run !help for more info"))
 
+# TODO: prevent HonkBot from adding roles to itself
 def roles_process_payload(payload):
     '''
     Preprocesses payload data into the reacting user and the requested role to
     be added or removed.
     '''
+    # TODO: make this configurable
+    if int(payload.user_id) == 802306421563064351:
+        raise Exception("Reactor is HonkBot itself")
     msgid = str(payload.message_id)
     emoji = str(payload.emoji)
     message_lookup = r.get(msgid)
@@ -119,14 +123,15 @@ async def verify(ctx, *args):
                 'you: either you are not a 15-122 student this semester, your ' \
                 'Andrew ID was entered incorrectly, or our roster is outdated ' \
                 '(please reach out to Ruiran if this is the case!).')
-        elif lookup == -1:
+        elif int(lookup) != -1:
             await ctx.channel.send(mention + ', you have already been verified!')
         else:
             role = discord.utils.get(ctx.guild.roles, name='student')
             await user.add_roles(role)
             r.set('student-' + args[1], user.id)
+            # TODO: make honk emote configurable
             await ctx.channel.send(mention + ', you have been successfully ' \
-                'verified! Welcome :honk:')
+                'verified! Welcome <:honk:802328685365428254>')
     elif args[0] == 'staff':
         lookup = r.get('staff-' + args[1])
         if lookup is None:
@@ -135,18 +140,19 @@ async def verify(ctx, *args):
                 'Andrew ID was entered incorrectly, or our TA roster on the ' \
                 'database is incorrect (please reach out to Ruiran if this ' \
                 'is the case!).')
-        elif lookup == -1:
+        elif int(lookup) != -1:
             await ctx.channel.send(mention + ', you have already been verified!')
         else:
             role = discord.utils.get(ctx.guild.roles, name='staff')
             await user.add_roles(role)
             r.set('staff-' + args[1], user.id)
             await ctx.channel.send(mention + ', you have been successfully ' \
-                'verified! Welcome :honk:')
+                'verified! Welcome <:honk:802328685365428254>')
     else:
         await ctx.channel.send('Please specify a valid role (either `student` ' \
             'or `staff`.')
         
+# TODO: add in doublechecks for adding
 @client.command(pass_context=True)
 async def add_student(ctx, *args):
     if not ctx.message.author.guild_permissions.administrator:
@@ -158,6 +164,7 @@ async def add_student(ctx, *args):
             r.set('student-' + andrewid, -1)
         await ctx.channel.send('Successfully added ' + str(len(args)) + ' student(s) to the roster.')
 
+# TODO: add in doublechecks for adding
 @client.command(pass_context=True)
 async def add_staff(ctx, *args):
     if not ctx.message.author.guild_permissions.administrator:
@@ -193,50 +200,56 @@ async def remove_staff(ctx, *args):
 
 client.remove_command('help')   # override default help command
 @client.command(pass_context=True)
-async def help(ctx):
-    embedVar = discord.Embed(title="HonkBot Help", color=0x006600)
-    embedVar.add_field(
-        name='`!verify <student/staff> <andrewID>`',
-        value='Verifies a user as a student or TA. Example usage: ' \
-            '`!verify student rxun`',
-        inline=False
-    )
-    embedVar.add_field(
-        name='`!set_roles <role0> <role1> ...`',
-        value='Turns the arguments into server roles, enabling users to ' \
+async def help(ctx, *args):
+    explanations = {
+        'verify': [
+            '`!verify <student/staff> <andrewID>`',
+            'Verifies a user as a student or TA. Example usage: ' \
+            '`!verify student rxun`'
+        ],
+        'set_roles': [
+            '`!set_roles <role0> <role1> ...`',
+            'Turns the arguments into server roles, enabling users to ' \
             'add the roles to themselves by reacting to a message. (Note ' \
-            'that this can only be run by administrators.)',
-        inline=False
-    )
-    embedVar.add_field(
-        name='`!add_student <andrewID0> <andrewID1> ...`',
-        value='Adds the users with specified Andrew IDs as verifiable ' \
-            'students. (Note that this can only be run by administrators.)',
-        inline=False
-    )
-    embedVar.add_field(
-        name='`!add_staff <andrewID0> <andrewID1> ...`',
-        value='Adds the users with specified Andrew IDs as verifiable ' \
-            'TAs. (Note that this can only be run by administrators.)',
-        inline=False
-    )
-    embedVar.add_field(
-        name='`!remove_student <andrewID0> <andrewID1> ...`',
-        value='Removes the users with specified Andrew IDs from the verifiable ' \
-            'student roster. (Note that this can only be run by administrators.)',
-        inline=False
-    )
-    embedVar.add_field(
-        name='`!remove_staff <andrewID0> <andrewID1> ...`',
-        value='Removes the users with specified Andrew IDs from the verifiable ' \
-            'TA roster. (Note that this can only be run by administrators.)',
-        inline=False
-    )
-    embedVar.add_field(
-        name='`!help`',
-        value='Displays this message.',
-        inline=False
-    )
+            'that this can only be run by administrators.)'
+        ],
+        'add_student': [
+            '`!add_student <andrewID0> <andrewID1> ...`',
+            'Adds the users with specified Andrew IDs as verifiable ' \
+            'students. (Note that this can only be run by administrators.)'
+        ],
+        'add_staff': [
+            '`!add_staff <andrewID0> <andrewID1> ...`',
+            'Adds the users with specified Andrew IDs as verifiable ' \
+            'TAs. (Note that this can only be run by administrators.)'
+        ],
+        'remove_student': [
+            '`!remove_student <andrewID0> <andrewID1> ...`',
+            'Removes the users with specified Andrew IDs from the verifiable ' \
+            'student roster. (Note that this can only be run by administrators.)'
+        ],
+        'remove_staff': [
+            '`!remove_staff <andrewID0> <andrewID1> ...`',
+            'Removes the users with specified Andrew IDs from the verifiable ' \
+            'TA roster. (Note that this can only be run by administrators.)'
+        ],
+        'help': [
+            '`!help <cmd0> <cmd1> ...`',
+            'Displays help messages for the specified commands. If args are ' \
+            'left empty, help for all commands is displayed.'
+        ]
+    }
+    embedVar = discord.Embed(title="HonkBot Help", color=0x006600)
+    if len(args) == 0:
+        for cmd in explanations.values():
+            embedVar.add_field(name=cmd[0], value=cmd[1], inline=False)
+    else:
+        for reqcmd in args:
+            try:
+                cmd = explanations[reqcmd]
+                embedVar.add_field(name=cmd[0], value=cmd[1], inline=False)
+            except KeyError:
+                continue
     await(ctx.channel.send(embed=embedVar))
 
 client.run(DISCORD_TOKEN)
