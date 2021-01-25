@@ -36,7 +36,6 @@ async def on_ready():
     print('Logged in as ' + str(client.user.name) + '(' + str(client.user.id) + ')')
     await client.change_presence(activity=discord.Game("run !help for more info"))
 
-# TODO: prevent HonkBot from adding roles to itself
 def roles_process_payload(payload):
     '''
     Preprocesses payload data into the reacting user and the requested role to
@@ -110,6 +109,7 @@ async def set_roles(ctx, *args):
 
 @client.command(pass_context=True)
 async def verify(ctx, *args):
+    # TODO: make honk and honk_heart emotes configurable
     mention = ctx.message.author.mention
     user = ctx.message.author
     if len(args) < 2:
@@ -124,14 +124,14 @@ async def verify(ctx, *args):
                 'Andrew ID was entered incorrectly, or our roster is outdated ' \
                 '(please reach out to Ruiran if this is the case!).')
         elif int(lookup) != -1:
-            await ctx.channel.send(mention + ', you have already been verified!')
+            await ctx.channel.send(mention + ', you have already been verified! <:honk:802328685365428254>')
         else:
             role = discord.utils.get(ctx.guild.roles, name='student')
             await user.add_roles(role)
             r.set('student-' + args[1], user.id)
-            # TODO: make honk emote configurable
+            
             await ctx.channel.send(mention + ', you have been successfully ' \
-                'verified! Welcome <:honk:802328685365428254>')
+                'verified! Welcome <:honk_heart:802763286163488808>')
     elif args[0] == 'staff':
         lookup = r.get('staff-' + args[1])
         if lookup is None:
@@ -141,18 +141,17 @@ async def verify(ctx, *args):
                 'database is incorrect (please reach out to Ruiran if this ' \
                 'is the case!).')
         elif int(lookup) != -1:
-            await ctx.channel.send(mention + ', you have already been verified!')
+            await ctx.channel.send(mention + ', you have already been verified! <:honk:802328685365428254>')
         else:
             role = discord.utils.get(ctx.guild.roles, name='staff')
             await user.add_roles(role)
             r.set('staff-' + args[1], user.id)
             await ctx.channel.send(mention + ', you have been successfully ' \
-                'verified! Welcome <:honk:802328685365428254>')
+                'verified! Welcome <:honk_heart:802763286163488808>')
     else:
         await ctx.channel.send('Please specify a valid role (either `student` ' \
             'or `staff`.')
         
-# TODO: add in doublechecks for adding
 @client.command(pass_context=True)
 async def add_student(ctx, *args):
     if not ctx.message.author.guild_permissions.administrator:
@@ -160,11 +159,16 @@ async def add_student(ctx, *args):
     elif len(args) == 0:
         await ctx.channel.send('Please specify one or more students to add to the roster.')
     else:
+        total_added = 0
         for andrewid in args:
-            r.set('student-' + andrewid, -1)
-        await ctx.channel.send('Successfully added ' + str(len(args)) + ' student(s) to the roster.')
+            lookup = r.get('student-' + andrewid)
+            if lookup is None:
+                r.set('student-' + andrewid, -1)
+                total_added += 1
+            else:
+                await ctx.channel.send('NOTE: ' + andrewid + ' is already in the roster.')
+        await ctx.channel.send('Successfully added ' + str(total_added) + ' student(s) to the roster.')
 
-# TODO: add in doublechecks for adding
 @client.command(pass_context=True)
 async def add_staff(ctx, *args):
     if not ctx.message.author.guild_permissions.administrator:
@@ -172,9 +176,15 @@ async def add_staff(ctx, *args):
     elif len(args) == 0:
         await ctx.channel.send('Please specify one or more TAs to add to the roster.')
     else:
+        total_added = 0
         for andrewid in args:
-            r.set('staff-' + andrewid, -1)
-        await ctx.channel.send('Successfully added ' + str(len(args)) + ' TA(s) to the roster.')
+            lookup = r.get('staff-' + andrewid)
+            if lookup is None:
+                r.set('staff-' + andrewid, -1)
+                total_added += 1
+            else:
+                await ctx.channel.send('NOTE: ' + andrewid + ' is already in the roster.')
+        await ctx.channel.send('Successfully added ' + str(total_added) + ' TA(s) to the roster.')
 
 @client.command(pass_context=True)
 async def remove_student(ctx, *args):
@@ -183,9 +193,15 @@ async def remove_student(ctx, *args):
     elif len(args) == 0:
         await ctx.channel.send('Please specify one or more students to remove from the roster.')
     else:
+        total_removed = 0
         for andrewid in args:
-            r.set('student-' + andrewid, -1)
-        await ctx.channel.send('Successfully removed ' + str(len(args)) + ' student(s) from the roster.')
+            lookup = r.get('student-' + andrewid)
+            if lookup is not None:
+                r.delete('student-' + andrewid)
+                total_removed += 1
+            else:
+                await ctx.channel.send('NOTE: ' + andrewid + ' was not in the roster.')
+        await ctx.channel.send('Successfully removed ' + str(total_removed) + ' student(s) from the roster.')
 
 @client.command(pass_context=True)
 async def remove_staff(ctx, *args):
@@ -194,9 +210,15 @@ async def remove_staff(ctx, *args):
     elif len(args) == 0:
         await ctx.channel.send('Please specify one or more TAs to remove from the roster.')
     else:
+        total_removed = 0
         for andrewid in args:
-            r.set('staff-' + andrewid, -1)
-        await ctx.channel.send('Successfully removed ' + str(len(args)) + ' TA(s) from the roster.')    
+            lookup = r.get('staff-' + andrewid)
+            if lookup is not None:
+                r.delete('staff-' + andrewid)
+                total_removed += 1
+            else:
+                await ctx.channel.send('NOTE: ' + andrewid + ' was not in the roster.')
+        await ctx.channel.send('Successfully removed ' + str(total_removed) + ' TA(s) from the roster.')    
 
 client.remove_command('help')   # override default help command
 @client.command(pass_context=True)
