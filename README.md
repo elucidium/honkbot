@@ -40,3 +40,24 @@ Once all the above setup has been done, you can test your bot locally by running
 
 ### Deploying on Heroku
 Go to the "Deploy" tab, scroll all the way down, and select "Deploy Branch".
+
+## Administrivia
+
+1. Once the TA roster is finalized and the Discord server is appropriately setup, TAs can be added to the roster by running the following command, where the `<taX>` placeholders are Andrew IDs of TAs for that semester. The list can be delimited by spaces or newlines (note that the demonstrated command allows you to copypaste directly from a spreadsheet).
+```
+!add_staff
+<ta0>
+<ta1>
+<ta2>
+...
+```
+2. Before the Discord invite link is given to students, make sure to pull the student roster and run a similar command, where the `<studentX>` placeholders are Andrew IDs of TAs for that semester.
+```
+!add_student
+<student0>
+<student1>
+<student2>
+...
+```
+3. Note that due to student add/drops and waitlist updates, the roster inevitably will change. After running `diff` on rosters to check which students have enrolled and dropped, use the commands `!add_student` and `!remove_student` respectively to update the Redis database.
+4. More robust configuration options coming soon!
