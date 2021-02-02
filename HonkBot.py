@@ -150,7 +150,7 @@ async def verify(ctx, *args):
                 'verified! Welcome <:honk_heart:802763286163488808>')
     else:
         await ctx.channel.send('Please specify a valid role (either `student` ' \
-            'or `staff`.')
+            'or `staff`).')
         
 @client.command(pass_context=True)
 async def add_student(ctx, *args):
