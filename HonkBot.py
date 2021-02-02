@@ -194,9 +194,14 @@ async def remove_student(ctx, *args):
         await ctx.channel.send('Please specify one or more students to remove from the roster.')
     else:
         total_removed = 0
+        guild = ctx.guild
         for andrewid in args:
             lookup = r.get('student-' + andrewid)
             if lookup is not None:
+                if int(lookup) != -1:
+                    user = guild.get_member(int(lookup))
+                    if user is not None:
+                        await ctx.channel.send('NOTE: ' + user.name + ' (' + andrewid + ') is verified in this server.')
                 r.delete('student-' + andrewid)
                 total_removed += 1
             else:
