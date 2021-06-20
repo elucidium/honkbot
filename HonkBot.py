@@ -121,7 +121,8 @@ async def verify(ctx, *args):
         if lookup is None:
             await ctx.channel.send(mention + ', Honk was unable to verify ' \
                 'you: either you are not a 15-122 student this semester, your ' \
-                'Andrew ID was entered incorrectly, or our roster is outdated ' \
+                'Andrew ID was entered incorrectly (make sure to exclude the ' \
+                'angle brackets, e.g. `!verify student rxun`), or our roster is outdated ' \
                 '(please reach out to Ruiran if this is the case!).')
         elif int(lookup) != -1:
             await ctx.channel.send(mention + ', you have already been verified! <:honk:856204346298204160>')
@@ -137,7 +138,8 @@ async def verify(ctx, *args):
         if lookup is None:
             await ctx.channel.send(mention + ', Honk was unable to verify ' \
                 'you: either you are not a 15-122 TA this semester, your ' \
-                'Andrew ID was entered incorrectly, or our TA roster on the ' \
+                'Andrew ID was entered incorrectly (make sure to exclude the '
+                'angle brackets, e.g. `!verify staff rxun`), or our TA roster in the ' \
                 'database is incorrect (please reach out to Ruiran if this ' \
                 'is the case!).')
         elif int(lookup) != -1:
