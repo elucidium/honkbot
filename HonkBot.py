@@ -124,14 +124,14 @@ async def verify(ctx, *args):
                 'Andrew ID was entered incorrectly, or our roster is outdated ' \
                 '(please reach out to Ruiran if this is the case!).')
         elif int(lookup) != -1:
-            await ctx.channel.send(mention + ', you have already been verified! <:honk:802328685365428254>')
+            await ctx.channel.send(mention + ', you have already been verified! <:honk:856204346298204160>')
         else:
             role = discord.utils.get(ctx.guild.roles, name='student')
             await user.add_roles(role)
             r.set('student-' + args[1], user.id)
             
             await ctx.channel.send(mention + ', you have been successfully ' \
-                'verified! Welcome <:honk_heart:802763286163488808>')
+                'verified! Welcome <:honk_heart:856197771685789726>')
     elif args[0] == 'staff':
         lookup = r.get('staff-' + args[1])
         if lookup is None:
@@ -141,13 +141,13 @@ async def verify(ctx, *args):
                 'database is incorrect (please reach out to Ruiran if this ' \
                 'is the case!).')
         elif int(lookup) != -1:
-            await ctx.channel.send(mention + ', you have already been verified! <:honk:802328685365428254>')
+            await ctx.channel.send(mention + ', you have already been verified! <:honk:856204346298204160>')
         else:
             role = discord.utils.get(ctx.guild.roles, name='staff')
             await user.add_roles(role)
             r.set('staff-' + args[1], user.id)
             await ctx.channel.send(mention + ', you have been successfully ' \
-                'verified! Welcome <:honk_heart:802763286163488808>')
+                'verified! Welcome <:honk_heart:856197771685789726>')
     else:
         await ctx.channel.send('Please specify a valid role (either `student` ' \
             'or `staff`).')
